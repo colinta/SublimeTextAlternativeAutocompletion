@@ -1,0 +1,31 @@
+[
+    // textmate autocompletion
+    { "keys": ["escape"], "command": "alternative_autocomplete", "context":
+      [
+        { "key": "num_selections", "operator": "equal", "operand": 1 },
+        { "key": "panel_visible", "operator": "equal", "operand": false },
+        { "key": "overlay_visible", "operator": "equal", "operand": false },
+        { "key": "has_prev_field", "operator": "equal", "operand": false },
+        { "key": "has_next_field", "operator": "equal", "operand": false }
+      ]
+    },
+    { "keys": ["shift+escape"], "command": "alternative_autocomplete", "args": {"cycle": "previous"}, "context":
+      [
+        { "key": "num_selections", "operator": "equal", "operand": 1 },
+        { "key": "overlay_visible", "operator": "equal", "operand": false },
+        { "key": "panel_visible", "operator": "equal", "operand": false },
+        { "key": "has_prev_field", "operator": "equal", "operand": false },
+        { "key": "has_next_field", "operator": "equal", "operand": false }
+      ]
+    },
+    { "keys": ["tab"], "command": "alternative_autocomplete", "args": {"tab": true}, "context":
+      [
+        { "key": "num_selections", "operator": "equal", "operand": 1 }
+      ]
+    },
+    { "keys": ["shift+tab"], "command": "alternative_autocomplete", "args": {"cycle": "previous"}, "context":
+      [
+        { "key": "num_selections", "operator": "equal", "operand": 1 }
+      ]
+    }
+]
