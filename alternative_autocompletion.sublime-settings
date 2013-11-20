@@ -55,8 +55,6 @@
     "attr_reader",
     "attr_writer",
     "attr_accessor",
-    "UIViewController",
-    "UIView",
     "module_function"
   ]
 }

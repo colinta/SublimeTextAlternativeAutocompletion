@@ -43,15 +43,12 @@ class AlternativeAutocompleteCommand(sublime_plugin.TextCommand):
     candidates = []
     previous_completion = None
 
-    def run(self, edit, cycle='next', default=''):
+    def run(self, edit, cycle='next', tab=False):
         self.edit = edit
         text = self.view.substr(sublime.Region(0, self.view.size()))
-        # lines = self.view.substr(sublime.Region(0, self.view.size())).splitlines()
-        # remove initial indentation.  this makes the "distance" calculation more equitable
-        # text = "\n".join(map(lambda s: re.sub('^[ \t]+', '', s), lines))
-        self.insert_completion(edit, self.view.sel()[0].b, text, cycle, default)
+        self.insert_completion(edit, self.view.sel()[0].b, text, cycle, tab)
 
-    def insert_completion(self, edit, position, text, cycle, default):
+    def insert_completion(self, edit, position, text, cycle, tab):
         prefix_match = re.search(r'([\w\d_]+)\Z', text[0:position], re.M | re.U)
         if prefix_match:
             current_word_match = re.search(r'^([\w\d_]+)', text[prefix_match.start(1):], re.M | re.U)
@@ -78,10 +75,14 @@ class AlternativeAutocompleteCommand(sublime_plugin.TextCommand):
                     completion = self.candidates[(self.candidates.index(self.previous_completion) + direction) % len(self.candidates)]
                 self.view.insert(edit, prefix_match.start(1), completion)
                 self.previous_completion = completion
-        else:
-            if default and default != '':
-                self.view.insert(self.edit, position, default)
-
+        elif tab:
+            if cycle == 'next':
+                if position == position and (position == 0 or self.view.substr(position) == "\n"):
+                    self.view.insert(self.edit, position, "\t")
+                else:
+                    self.view.run_command('indent')
+            else:
+                self.view.run_command('unindent')
     @staticmethod
     def get_distance(candidate):
         return candidate.distance
@@ -123,7 +124,7 @@ class AlternativeAutocompleteCommand(sublime_plugin.TextCommand):
         default_candidates = default_settings.get(settings_name, [])
 
         user_settings = sublime.load_settings(settings_name + ".sublime-settings")
-        user_candidates = user_settings.get('autocomplete')
+        user_candidates = user_settings.get('autocomplete', [])
 
         merge = user_settings.get('merge', {}).get(settings_name)
         if not merge:
@@ -144,12 +145,12 @@ class AlternativeAutocompleteCommand(sublime_plugin.TextCommand):
                 user_candidates = user_settings.get('autocomplete')
 
         if default_candidates:
-            candidates = [Candidate(self.view.size(), c) for c in default_candidates if c[:len(prefix)] == prefix]
+            candidates = [Candidate(self.view.size(), word) for word in default_candidates if fuzzy_match(prefix, word)]
         else:
             candidates = []
 
         # now merge user settings
         if user_candidates:
-            candidates.extend([Candidate(self.view.size(), c) for c in user_candidates if c[:len(prefix)] == prefix])
+            candidates.extend([Candidate(self.view.size(), word) for word in user_candidates if fuzzy_match(prefix, word)])
 
         return candidates
