@@ -1,7 +1,7 @@
 Alternative autocompletion
 ==========================
 
-This plugin adds an autocompletion command to Sublime Text 2 that acts similarly to TextMate:
+This plugin adds an autocompletion command to Sublime Text that acts similarly to TextMate:
 
 * Hitting the autocomplete key will attempt to complete the current word by looking at similar words in the current document.
 
