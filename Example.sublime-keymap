@@ -23,9 +23,19 @@
         { "key": "num_selections", "operator": "equal", "operand": 1 }
       ]
     },
+    { "keys": ["tab"], "command": "next_field", "context":
+      [
+        { "key": "has_next_field", "operator": "equal", "operand": true }
+      ]
+    },
     { "keys": ["shift+tab"], "command": "alternative_autocomplete", "args": {"cycle": "previous"}, "context":
       [
         { "key": "num_selections", "operator": "equal", "operand": 1 }
+      ]
+    },
+    { "keys": ["shift+tab"], "command": "prev_field", "context":
+      [
+        { "key": "has_prev_field", "operator": "equal", "operand": true }
       ]
     }
 ]
