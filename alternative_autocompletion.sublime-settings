@@ -56,5 +56,9 @@
     "attr_writer",
     "attr_accessor",
     "module_function"
+  ],
+  "Swift": [
+    "return", "func", "protocol", "extension",
+    "enumerate"
   ]
 }
