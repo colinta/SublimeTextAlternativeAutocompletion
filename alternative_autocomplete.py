@@ -41,48 +41,54 @@ class Candidate:
 class AlternativeAutocompleteCommand(sublime_plugin.TextCommand):
 
     candidates = []
-    previous_completion = None
+    previous_search = None
 
     def run(self, edit, cycle='next', tab=False):
-        self.edit = edit
         text = self.view.substr(sublime.Region(0, self.view.size()))
-        self.insert_completion(edit, self.view.sel()[0].b, text, cycle, tab)
+        sel = self.view.sel()[0]
+        position = sel.b
+        prefix_match = re.search(r'([\w\d_]+)\Z', text[:position], re.M | re.U)
+        postfix_match = re.search(r'\A([\w\d_]+)', text[position:], re.M | re.U)
 
-    def insert_completion(self, edit, position, text, cycle, tab):
-        prefix_match = re.search(r'([\w\d_]+)\Z', text[0:position], re.M | re.U)
         if prefix_match:
-            current_word_match = re.search(r'^([\w\d_]+)', text[prefix_match.start(1):], re.M | re.U)
-            if current_word_match:
-                current_word = current_word_match.group(1)
-            else:
-                current_word = None
+            current_search = prefix_match.group(1)
+            replace_start = prefix_match.start(1)
+            replace_end = prefix_match.end(1)
+            if postfix_match:
+                replace_end += postfix_match.end(1)
+                current_search += postfix_match.group(1)
 
-            prefix = prefix_match.group(1)
-            if self.previous_completion is None or prefix != self.previous_completion:
-                self.previous_completion = None
-                self.candidates = self.find_candidates(prefix, position, text)
-                if current_word in self.candidates:
-                    self.candidates.remove(current_word)
+            if self.previous_search is None or current_search != self.previous_search:
+                self.previous_search = None
+                self.candidates = self.find_candidates(current_search, position, text)
+                if current_search in self.candidates:
+                    self.candidates.remove(current_search)
+
+            self.view.sel().subtract(sel)
             if self.candidates:
-                self.view.erase(edit, sublime.Region(prefix_match.start(1), prefix_match.end(1)))
-                if self.previous_completion is None:
+                if self.previous_search is None:
                     completion = self.candidates[0]
                 else:
                     if cycle == 'previous':
                         direction = -1
                     else:
                         direction = 1
-                    completion = self.candidates[(self.candidates.index(self.previous_completion) + direction) % len(self.candidates)]
-                self.view.insert(edit, prefix_match.start(1), completion)
-                self.previous_completion = completion
+                    completion = self.candidates[(self.candidates.index(self.previous_search) + direction) % len(self.candidates)]
+                self.view.replace(edit, sublime.Region(replace_start, replace_end), completion)
+                self.previous_search = completion
+            else:
+                completion = current_search
+            cursor = replace_start + len(completion)
+            self.view.sel().add(sublime.Region(cursor, cursor))
         elif tab:
             if cycle == 'next':
-                if position == position and (position == 0 or self.view.substr(position) == "\n"):
-                    self.view.insert(self.edit, position, "\t")
+                if self.view.substr(position) == "\n":
+                    self.view.insert(edit, position, "\t")
                 else:
                     self.view.run_command('indent')
             else:
                 self.view.run_command('unindent')
+
     @staticmethod
     def get_distance(candidate):
         return candidate.distance
