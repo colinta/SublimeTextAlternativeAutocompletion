@@ -58,7 +58,8 @@
     "module_function"
   ],
   "Swift": [
-    "return", "func", "protocol", "extension",
-    "enumerate"
+    "return", "func", "enumerate",
+    "protocol", "extension", "class", "struct",
+    "CGFloat", "CGPoint", "CGRect", "CGSize"
   ]
 }
