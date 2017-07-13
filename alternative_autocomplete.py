@@ -41,7 +41,7 @@ class Candidate:
 class AlternativeAutocompleteCommand(sublime_plugin.TextCommand):
 
     candidates = []
-    previous_search = None
+    previous_completion = None
 
     def run(self, edit, cycle='next', tab=False):
         text = self.view.substr(sublime.Region(0, self.view.size()))
@@ -51,31 +51,37 @@ class AlternativeAutocompleteCommand(sublime_plugin.TextCommand):
         postfix_match = re.search(r'\A([\w\d_]+)', text[position:], re.M | re.U)
 
         if prefix_match:
-            current_search = prefix_match.group(1)
+            current_prefix = prefix_match.group(1)
+            current_search = current_prefix
             replace_start = prefix_match.start(1)
             replace_end = prefix_match.end(1)
-            if postfix_match:
+
+            if postfix_match and current_prefix != self.previous_completion:
                 replace_end += postfix_match.end(1)
                 current_search += postfix_match.group(1)
 
-            if self.previous_search is None or current_search != self.previous_search:
-                self.previous_search = None
+            if self.previous_completion is None or (current_search != self.previous_completion and current_prefix != self.previous_completion):
+                self.previous_completion = None
                 self.candidates = self.find_candidates(current_search, position, text)
+                if not self.candidates:
+                    self.candidates = self.find_candidates(current_prefix, position, text)
+                    replace_end = prefix_match.end(1)
+
                 if current_search in self.candidates:
                     self.candidates.remove(current_search)
 
             self.view.sel().subtract(sel)
             if self.candidates:
-                if self.previous_search is None:
+                if self.previous_completion is None:
                     completion = self.candidates[0]
                 else:
                     if cycle == 'previous':
                         direction = -1
                     else:
                         direction = 1
-                    completion = self.candidates[(self.candidates.index(self.previous_search) + direction) % len(self.candidates)]
+                    completion = self.candidates[(self.candidates.index(self.previous_completion) + direction) % len(self.candidates)]
                 self.view.replace(edit, sublime.Region(replace_start, replace_end), completion)
-                self.previous_search = completion
+                self.previous_completion = completion
             else:
                 completion = current_search
             cursor = replace_start + len(completion)
