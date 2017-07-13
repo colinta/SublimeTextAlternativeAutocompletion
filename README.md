@@ -16,7 +16,7 @@ The plugin improves on TextMate in one respect: If no candidates are found, the 
 Compatibility
 -------------
 
-Tested with Sublime Text 2 (`st2` branch) and Sublime Text 3 (`master` branch)
+Sublime Text 3 only
 
 Installation
 ------------
@@ -27,46 +27,7 @@ Installation
     - Linux: ~/.Sublime Text 3/Packages/ or ~/.config/sublime-text-3/Packages
 
 2. clone this repo
-
-### Sublime Text 2
-
-1. Open the Sublime Text 2 Packages folder
-2. clone this repo, but use the `st2` branch
-
-       git clone -b st2 git@github.com:colinta/colinta_alternative_autocompletion.tmLanguage
-
-Instructions
-------------
-
-To map to the escape key, like TextMate:
-
-    { "keys": ["escape"], "command": "alternative_autocomplete", "context":
-      [
-        { "key": "num_selections", "operator": "equal", "operand": 1 },
-        { "key": "overlay_visible", "operator": "equal", "operand": false },
-        { "key": "panel_visible", "operator": "equal", "operand": false }
-      ]
-    },
-    { "keys": ["shift+escape"], "command": "alternative_autocomplete", "args": {"cycle": "previous"}, "context":
-      [
-        { "key": "num_selections", "operator": "equal", "operand": 1 },
-        { "key": "overlay_visible", "operator": "equal", "operand": false },
-        { "key": "panel_visible", "operator": "equal", "operand": false }
-      ]
-    },
-
-To map to the tab key, you don't need to worry about the 'overlay_visible/panel_visible' options:
-
-    { "keys": ["tab"], "command": "alternative_autocomplete", "args": {"tab": true}, "context":
-      [
-        { "key": "num_selections", "operator": "equal", "operand": 1 }
-      ]
-    },
-    { "keys": ["shift+tab"], "command": "alternative_autocomplete", "args": {"cycle": "previous"}, "context":
-      [
-        { "key": "num_selections", "operator": "equal", "operand": 1 }
-      ]
-    },
+3. Install keymaps for the commands (see Example.sublime-keymap for my preferred keys)
 
 Limitations
 -----------

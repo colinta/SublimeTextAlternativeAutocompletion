@@ -28,7 +28,7 @@
         { "key": "has_next_field", "operator": "equal", "operand": true }
       ]
     },
-    { "keys": ["shift+tab"], "command": "alternative_autocomplete", "args": {"cycle": "previous"}, "context":
+    { "keys": ["shift+tab"], "command": "alternative_autocomplete", "args": {"tab" : true, "cycle": "previous"}, "context":
       [
         { "key": "num_selections", "operator": "equal", "operand": 1 }
       ]
