@@ -44,8 +44,11 @@ class AlternativeAutocompleteCommand(sublime_plugin.TextCommand):
     previous_completion = None
 
     def run(self, edit, cycle='next', tab=False):
+        for sel in self.view.sel():
+            self.run_sel(edit, cycle, tab, sel)
+
+    def run_sel(self, edit, cycle, tab, sel):
         text = self.view.substr(sublime.Region(0, self.view.size()))
-        sel = self.view.sel()[0]
         position = sel.b
         prefix_match = re.search(r'([\w\d_]+)\Z', text[:position], re.M | re.U)
         postfix_match = re.search(r'\A([\w\d_]+)', text[position:], re.M | re.U)
