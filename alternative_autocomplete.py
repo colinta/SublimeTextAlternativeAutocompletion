@@ -41,62 +41,99 @@ class Candidate:
 class AlternativeAutocompleteCommand(sublime_plugin.TextCommand):
 
     candidates = []
-    previous_completion = None
+    previous_completions = {}
 
     def run(self, edit, cycle='next', tab=False):
-        for sel in self.view.sel():
-            self.run_sel(edit, cycle, tab, sel)
+        cmd = self.cmd()
+        if cmd == 'tab':
+            if tab:
+                self.run_tab(edit, cycle)
+        elif cmd == 'autocomplete':
+            self.run_sel(edit, cycle)
 
-    def run_sel(self, edit, cycle, tab, sel):
+    def cmd(self):
+        if not self.view.sel():
+            return None
+
+        text = self.view.substr(sublime.Region(0, self.view.size()))
+
+        should_tab = True
+        should_autocomplete = True
+        for sel in self.view.sel():
+            position = sel.b
+            prefix_match = re.search(r'(\w+)\Z', text[:position], re.M | re.U)
+            if prefix_match:
+                should_tab = False
+            else:
+                should_autocomplete = False
+
+        if should_tab:
+            return 'tab'
+        elif should_autocomplete:
+            return 'autocomplete'
+
+    def run_tab(self, edit, cycle):
+        if cycle == 'next':
+            self.view.run_command('indent')
+            for sel in self.view.sel():
+                if self.view.substr(sel.b) == "\n" and (sel.b == 0 or self.view.substr(sel.b - 1) == "\n"):
+                    self.view.insert(edit, sel.b, "\t")
+        else:
+            self.view.run_command('unindent')
+
+    def run_sel(self, edit, cycle):
+        if len(self.view.sel()) != len(self.previous_completions):
+            self.previous_completions = {}
+
+        for index, sel in enumerate(self.view.sel()):
+            self.view.sel().subtract(sel)
+            try:
+                previous_completion = self.previous_completions[index]
+            except KeyError:
+                previous_completion = None
+            self.previous_completions[index] = self.run_sel_one(sel, edit, cycle, previous_completion, index == 0)
+
+    def run_sel_one(self, sel, edit, cycle, previous_completion, is_first):
         text = self.view.substr(sublime.Region(0, self.view.size()))
         position = sel.b
-        prefix_match = re.search(r'([\w\d_]+)\Z', text[:position], re.M | re.U)
-        postfix_match = re.search(r'\A([\w\d_]+)', text[position:], re.M | re.U)
+        prefix_match = re.search(r'(\w+)\Z', text[:position], re.M | re.U)
+        postfix_match = re.search(r'\A(\w+)', text[position:], re.M | re.U)
 
-        if prefix_match:
-            current_prefix = prefix_match.group(1)
-            current_search = current_prefix
-            replace_start = prefix_match.start(1)
-            replace_end = prefix_match.end(1)
+        current_prefix = prefix_match.group(1)
+        current_search = current_prefix
+        replace_start = prefix_match.start(1)
+        replace_end = prefix_match.end(1)
 
-            if postfix_match and current_prefix != self.previous_completion:
-                replace_end += postfix_match.end(1)
-                current_search += postfix_match.group(1)
+        if postfix_match and current_prefix != previous_completion:
+            replace_end += postfix_match.end(1)
+            current_search += postfix_match.group(1)
 
-            if self.previous_completion is None or (current_search != self.previous_completion and current_prefix != self.previous_completion):
-                self.previous_completion = None
-                self.candidates = self.find_candidates(current_search, position, text)
-                if not self.candidates:
-                    self.candidates = self.find_candidates(current_prefix, position, text)
-                    replace_end = prefix_match.end(1)
+        if is_first and previous_completion is None or (current_search != previous_completion and current_prefix != previous_completion):
+            previous_completion = None
+            self.candidates = self.find_candidates(current_search, position, text)
+            if not self.candidates:
+                self.candidates = self.find_candidates(current_prefix, position, text)
+                replace_end = prefix_match.end(1)
 
-                if current_search in self.candidates:
-                    self.candidates.remove(current_search)
+            if current_search in self.candidates:
+                self.candidates.remove(current_search)
 
-            self.view.sel().subtract(sel)
-            if self.candidates:
-                if self.previous_completion is None:
-                    completion = self.candidates[0]
-                else:
-                    if cycle == 'previous':
-                        direction = -1
-                    else:
-                        direction = 1
-                    completion = self.candidates[(self.candidates.index(self.previous_completion) + direction) % len(self.candidates)]
-                self.view.replace(edit, sublime.Region(replace_start, replace_end), completion)
-                self.previous_completion = completion
+        if self.candidates:
+            if previous_completion is None:
+                completion = self.candidates[0]
             else:
-                completion = current_search
-            cursor = replace_start + len(completion)
-            self.view.sel().add(sublime.Region(cursor, cursor))
-        elif tab:
-            if cycle == 'next':
-                if self.view.substr(position) == "\n":
-                    self.view.insert(edit, position, "\t")
+                if cycle == 'previous':
+                    direction = -1
                 else:
-                    self.view.run_command('indent')
-            else:
-                self.view.run_command('unindent')
+                    direction = 1
+                completion = self.candidates[(self.candidates.index(previous_completion) + direction) % len(self.candidates)]
+            self.view.replace(edit, sublime.Region(replace_start, replace_end), completion)
+            previous_completion = completion
+        else:
+            completion = current_search
+        cursor = replace_start + len(completion)
+        self.view.sel().add(sublime.Region(cursor, cursor))
+        return previous_completion
 
     @staticmethod
     def get_distance(candidate):
@@ -111,7 +148,7 @@ class AlternativeAutocompleteCommand(sublime_plugin.TextCommand):
             if len(default_candidates) > 100:
                 default_candidates = default_candidates[0:99]
 
-        word_regex = re.compile(r'\b' + re.escape(prefix[0:1]) + r'[\w\d]+', re.M | re.U | re.I)
+        word_regex = re.compile(r'\b' + re.escape(prefix[0:1]) + r'\w+', re.M | re.U | re.I)
         for match in word_regex.finditer(text):
             if match.start() < position < match.end():
                 continue

@@ -28,7 +28,7 @@
     "Exception", "StopIteration", "StandardError", "BufferError",
     "ArithmeticError", "FloatingPointError", "OverflowError",
     "ZeroDivisionError", "AssertionError", "AttributeError",
-    "EnvironmentError", "IOError", "OSError", "WindowsError (Windows)",
+    "EnvironmentError", "IOError", "OSError", "WindowsError",
     "VMSError (VMS)", "EOFError", "ImportError", "LookupError",
     "IndexError", "KeyError", "MemoryError", "NameError",
     "UnboundLocalError", "ReferenceError", "RuntimeError",
