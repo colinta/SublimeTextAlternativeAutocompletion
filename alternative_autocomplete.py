@@ -85,15 +85,28 @@ class AlternativeAutocompleteCommand(sublime_plugin.TextCommand):
         if len(self.view.sel()) != len(self.previous_completions):
             self.previous_completions = {}
 
+        all_same = True
+        prev_line = None
+        for sel in self.view.sel():
+            line = self.view.substr(sel)
+            if not line:
+                continue
+
+            if prev_line is None:
+                prev_line = line
+            elif prev_line != line:
+                all_same = False
+                break
+
         for index, sel in enumerate(self.view.sel()):
             self.view.sel().subtract(sel)
             try:
                 previous_completion = self.previous_completions[index]
             except KeyError:
                 previous_completion = None
-            self.previous_completions[index] = self.run_sel_one(sel, edit, cycle, previous_completion, index == 0)
+            self.previous_completions[index] = self.run_sel_one(sel, edit, cycle, previous_completion, is_first=index == 0, all_same=all_same)
 
-    def run_sel_one(self, sel, edit, cycle, previous_completion, is_first):
+    def run_sel_one(self, sel, edit, cycle, previous_completion, is_first, all_same):
         text = self.view.substr(sublime.Region(0, self.view.size()))
         position = sel.b
         prefix_match = re.search(r'(\w+)\Z', text[:position], re.M | re.U)
@@ -118,7 +131,12 @@ class AlternativeAutocompleteCommand(sublime_plugin.TextCommand):
             if current_search in self.candidates:
                 self.candidates.remove(current_search)
 
-        if self.candidates:
+        completion = None
+        if all_same and not is_first:
+            completion = self.previous_completions[0]
+            self.view.replace(edit, sublime.Region(replace_start, replace_end), completion + (postfix_match.group(1) if postfix_match else ''))
+            previous_completion = completion
+        elif self.candidates:
             if previous_completion is None:
                 completion = self.candidates[0]
             else:
