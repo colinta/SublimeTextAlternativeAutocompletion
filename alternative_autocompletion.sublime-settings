@@ -4,8 +4,14 @@
     "RubyMotion": ["Ruby"],
     "HTML 5": ["PHP"],
     "HTML (Django)": ["Python"],
-    "HTML (Jinja Templates)": ["Python"]
+    "HTML (Jinja Templates)": ["Python"],
+    "TypeScript": ["JavaScript"],
+    "TypeScriptReact": ["JavaScript"],
   },
+  "JavaScript": [
+    "constructor", "number", "undefined", "string", "class",
+    "boolean", "object", "null"
+  ],
   "Python": [
     "abs", "divmod",  "input", "open",  "staticmethod",
     "all", "enumerate", "int", "ord", "str",
