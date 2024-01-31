@@ -134,7 +134,12 @@ class AlternativeAutocompleteCommand(sublime_plugin.TextCommand):
         completion = None
         if all_same and not is_first:
             completion = self.previous_completions[0]
-            self.view.replace(edit, sublime.Region(replace_start, replace_end), completion + (postfix_match.group(1) if postfix_match else ''))
+            # self.view.replace(
+            #   edit,
+            #   sublime.Region(replace_start, replace_end),
+            #   completion + (postfix_match.group(1) if postfix_match else '')
+            # )
+            self.view.replace(edit, sublime.Region(replace_start, replace_end), completion)
             previous_completion = completion
         elif self.candidates:
             if previous_completion is None:
