@@ -173,12 +173,19 @@ class AlternativeAutocompleteCommand(sublime_plugin.TextCommand):
 
         word_regex = re.compile(r'\b' + re.escape(prefix[0:1]) + r'\w+', re.M | re.U | re.I)
         for match in word_regex.finditer(text):
-            if match.start() < position < match.end():
+            in_selection = False
+            for region in self.view.sel():
+                if match.start() < region.a < match.end():
+                    in_selection = True
+                    break
+            if in_selection:
                 continue
-            elif match.end() < position:
+
+            if match.end() < position:
                 location = match.end()
             else:
                 location = match.start()
+
             distance = abs(position - location)
             word = match.group()
             if word != prefix and fuzzy_match(prefix, word):
