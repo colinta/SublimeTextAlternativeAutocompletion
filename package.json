@@ -3,10 +3,12 @@
   "description": "Fuzzy word completion, based on the contents of the current file.",
   "author": "Colin T.A. Gray (colinta)",
   "details": "https://github.com/colinta/SublimeTextAlternativeAutocompletion",
-  "labels": ["text manipulation"],
+  "labels": [
+    "text manipulation"
+  ],
   "releases": [
     {
-      "details": "https://github.com/colinta/SublimeTextAlternativeAutocompletion/tags",
+      "tags": true,
       "sublime_text": ">=3000"
     }
   ]
